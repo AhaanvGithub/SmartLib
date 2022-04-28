@@ -1,5 +1,7 @@
 # Libraries & DS
 import csv
+import time
+
 from node import Book
 
 # Open CSV & Clean
@@ -20,11 +22,11 @@ for i in range(1, len(listed_data)):
     category = Book(listed_data[i]).data_val["category"]
     writer = Book(listed_data[i]).data_val["author"]
     recommender = Book(listed_data[i]).data_val["recommender"]
-    smthn = recommender.split("|")
+    each_recommender = recommender.split("|")
 
-    for x in range(len(smthn)):
-        if smthn[x] not in recommenders:
-            recommenders += [smthn[x]]
+    for x in range(len(each_recommender)):
+        if each_recommender[x] not in recommenders:
+            recommenders += [each_recommender[x]]
 
     if category not in genres:
         genres.append(category)
@@ -62,6 +64,7 @@ def introduce():
 
 def goodbye():
     print("Thank you for using SmartLibs!")
+    time.sleep(3)
 
 
 def decision():
@@ -115,7 +118,7 @@ def genre_of_choice():
     elif user_genre == 'b':
         return take_back_to_main_menu()
     elif user_genre in genres:
-        print("Here are the books in this section...")
+        print(f"Here are the books in the genre {user_genre.title()}...")
         for a in range(1, len(listed_data)):
             current_book = Book(listed_data[a])
             if current_book.data_val["category"] == user_genre:
@@ -142,7 +145,7 @@ def author_of_choice():
     elif user_author == "b":
         return take_back_to_main_menu()
     elif user_author.lower() in [i.lower() for i in authors]:
-        print("Here are the listed books this author has written...")
+        print(f"Here are the listed books {user_author.title()} has written...")
         for w in range(1, len(listed_data)):
             current_book = Book(listed_data[w])
             if current_book.data_val["author"].lower() == user_author.lower() or \
@@ -171,6 +174,7 @@ def recommender_of_choice():
     elif user_recommend == 'b':
         return take_back_to_main_menu()
     elif user_recommend.lower() in [i.lower() for i in recommenders]:
+        print(f"Here are books recommended by {user_recommend.title()}:")
         for book in range(1, len(listed_data)):
             current_book = Book(listed_data[book])
             if user_recommend.lower() in current_book.data_val["recommender"].lower():
@@ -184,7 +188,90 @@ def recommender_of_choice():
 
 
 def pages_of_choice():
-    pass
+    user_choose_option = input("Would you like a specific amount of pages or a range of pages? Type 's' for a "
+                               "specific number of pages and 'r' for a range of pages, or 'b' to go back:\n")
+    if user_choose_option == "s":
+        return pages_specific()
+    elif user_choose_option == "r":
+        return pages_range()
+    elif user_choose_option == "b":
+        return take_back_to_main_menu()
+    else:
+        print("Uh-oh, that doesn't seem like a valid choice, lets try this again...")
+        return pages_of_choice()
+
+
+def pages_specific():
+    user_specific = input("How many pages do you want your book to have exactly? Type your number of pages below, "
+                          "or type 'b' to go back:\n")
+    if user_specific == 'b':
+        return pages_of_choice()
+    elif user_specific.isdigit():
+        list_of_valid_books = []
+        for index in range(1, len(listed_data)):
+            current_book = Book(listed_data[index])
+            if current_book.data_val["pages"] == user_specific:
+                list_of_valid_books.append(current_book)
+
+        if len(list_of_valid_books) == 0:
+            print("Uh-oh, this number of pages doesn't see, to be available...")
+        else:
+            print(f"Here are the books that have {user_specific} pages:")
+            for i in list_of_valid_books:
+                i.get_book_data()
+            print("")
+        yn("Would you like to try searching for more books again? Type y/n to continue:\n", pages_of_choice,
+           take_back_to_main_menu)
+    else:
+        print("Oops, that doesn't seem like an integer or command, lets try this again...")
+        return pages_specific()
+
+
+def pages_range():
+    user_range_minimum = input("What is the minimum number of pages you're looking for? (type 'b' to leave)\n")
+    if user_range_minimum == 'b':
+        return take_back_to_main_menu()
+    while not user_range_minimum.isdigit():
+        print("Uh-oh, that doesn't seem like a number we can search for, lets try this again...")
+        user_range_minimum = input("What is the minimum number of pages you're looking for? (type 'b' to leave)\n")
+        if user_range_minimum == 'b':
+            return take_back_to_main_menu()
+
+    user_range_maximum = input("What is the maximum number of pages you're looking for? (type 'b' to leave)\n")
+    if user_range_maximum == 'b':
+        return take_back_to_main_menu()
+    while not user_range_maximum.isdigit():
+        print("Uh-oh, that doesn't seem like a number we can search for, lets try this again...")
+        user_range_maximum = input("What is the maximum number of pages you're looking for? (type 'b' to leave)\n")
+        if user_range_maximum == 'b':
+            return take_back_to_main_menu()
+
+    if int(user_range_minimum) > int(user_range_maximum):
+        print("Uh-oh! It seems like your minimum number of pages ({0}) is greater than your maximum number of pages "
+              "({1}), let's try this again...".format(user_range_minimum, user_range_maximum))
+        pages_range()
+    elif user_range_minimum == user_range_maximum:
+        print("It seems your minimum number of pages ({0}) is the exact same as your maximum number of pages ({1}), "
+              "this will require a specific amount of pages...".format(user_range_minimum, user_range_maximum))
+        pages_specific()
+    else:
+        available_books = []
+        for i in range(1, len(listed_data)):
+            current_book = Book(listed_data[i])
+            if current_book.data_val["pages"] == "":
+                continue
+            if int(user_range_minimum) < int(current_book.data_val["pages"]) < int(user_range_maximum):
+                available_books.append(current_book)
+
+        if len(available_books) > 0:
+            for i in available_books:
+                i.get_book_data()
+            print("")
+            yn("Would you like to search for more books page-specific? Type y/n to continue:\n", pages_of_choice,
+               take_back_to_main_menu)
+        else:
+            yn("Uh-oh! There doesn't seem to be any books available in this range, would you like to try again? "
+               "Type y/n to continue:\n", pages_range, take_back_to_main_menu)
 
 
 introduce()
