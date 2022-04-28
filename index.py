@@ -36,7 +36,7 @@ authors.sort()
 genres.sort()
 recommenders.sort()
 
-print(recommenders)
+
 # Functions for console application
 def introduce():
     name = input("What's your name?\n")
@@ -87,15 +87,15 @@ def decision():
         return "Error"
 
 
-def yn(strin, yes, no):
-    user_response = input(strin)
+def yn(question, yes, no):
+    user_response = input(question)
     if user_response == "y":
         yes()
     elif user_response == "n":
         no()
     else:
         print("Oops, that wasn't a valid option, lets try this again...")
-        return yn(strin, yes, no)
+        return yn(question, yes, no)
 
 
 def take_back_to_main_menu():
@@ -141,15 +141,13 @@ def author_of_choice():
         return author_of_choice()
     elif user_author == "b":
         return take_back_to_main_menu()
-    elif user_author in authors or user_author in [i.lower() for i in authors] or user_author in [i.upper() for i in
-                                                                                                  authors]:
+    elif user_author.lower() in [i.lower() for i in authors]:
         print("Here are the listed books this author has written...")
         for w in range(1, len(listed_data)):
             current_book = Book(listed_data[w])
             if current_book.data_val["author"].lower() == user_author.lower() or \
                     current_book.data_val["author"].upper() == user_author.upper() or \
                     current_book.data_val["author"] == user_author:
-
                 current_book.get_book_data()
         print("")
         yn("Would you like to see another authors book? Type y/n to continue:\n", author_of_choice,
@@ -160,7 +158,29 @@ def author_of_choice():
 
 
 def recommender_of_choice():
-    pass
+    user_recommend = input(
+        "What recommender would you like to choose? Type 'op' to see the list of available recommenders, 'b' to go back"
+        ", or type your recommender:\n")
+
+    if user_recommend == 'op':
+        print("Recommenders to select from:")
+        for i in recommenders:
+            print("-", i)
+        print("")
+        return recommender_of_choice()
+    elif user_recommend == 'b':
+        return take_back_to_main_menu()
+    elif user_recommend.lower() in [i.lower() for i in recommenders]:
+        for book in range(1, len(listed_data)):
+            current_book = Book(listed_data[book])
+            if user_recommend.lower() in current_book.data_val["recommender"].lower():
+                current_book.get_book_data()
+        print("")
+        yn("Would you like to see books from another recommender? Type y/n to continue:\n", recommender_of_choice,
+           take_back_to_main_menu)
+    else:
+        print("Oops, that doesn't seem like a valid command, lets try this again...")
+        return recommender_of_choice()
 
 
 def pages_of_choice():
